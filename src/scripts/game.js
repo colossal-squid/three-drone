@@ -2,7 +2,15 @@ import { initPhysics, addBox, updatePhysics, bodies } from './physics';
 import { initThreeJs, addBoxMesh, updateRenderer } from './render';
 import { EVENT_BUS, startListening } from './event-bus';
 
-const JUMP_FORCE = { x: 0, y: 0.002, z: 0 };
+const SPEED = 0.0002;
+const MOVEMENT_IMPULSES = {
+    'forward': { x:SPEED , y: 0.0, z: 0 },
+    'back': { x: -SPEED, y: 0.0, z: 0 },
+    'left': { x: 0, y: 0.0, z: -SPEED },
+    'right': { x: 0, y: 0.0, z: SPEED },
+    'jump': { x: 0, y: 0.002, z: 0 }
+}
+
 let playerBody;
 
 function createBox(size, pos, move = false) {
@@ -11,12 +19,17 @@ function createBox(size, pos, move = false) {
     return body;
 }
 
+function movePlayer(impulse) {
+    playerBody.applyImpulse(playerBody.getPosition(), impulse)
+}
+
 function initControls() {
     startListening();
-    EVENT_BUS.on('jump', () => {
-        const center = playerBody.getPosition();
-        playerBody.applyImpulse(center, JUMP_FORCE)
-    })
+    Object.keys(MOVEMENT_IMPULSES).forEach((eventName) => {
+        EVENT_BUS.on(eventName, () => {
+            movePlayer(MOVEMENT_IMPULSES[eventName])
+        });
+    });
 }
 export function start() {
     initPhysics();
