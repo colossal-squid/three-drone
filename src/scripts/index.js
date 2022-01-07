@@ -32,8 +32,9 @@ function updateMeshPositions() {
 function init() {
 
   camera = new PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10);
-  camera.position.z = 1;
-
+  camera.position.set(-0.5, 0.5, 0.5);
+  camera.rotation.set(-1, -0.5, -0.5);
+  window.camera = camera;
   scene = new Scene();
 
   renderer = new WebGLRenderer({ antialias: true });
@@ -53,12 +54,10 @@ function animation(time) {
 }
 
 function addBoxMesh(size, position, rotation = [0, 0, 0]) {
-  
   const geometry = new BoxGeometry( ...size );
 	const mesh = new Mesh( geometry, MATERIAL );
-
   mesh.position.set(position[0], position[1], position[2]);
-  // mesh.rotation.set(rotation[0] * ToRad, rotation[1] * ToRad, rotation[2] * ToRad);
+  mesh.rotation.set(rotation[0] * ToRad, rotation[1] * ToRad, rotation[2] * ToRad);
 	scene.add( mesh );
   meshes.push( mesh );
 }
