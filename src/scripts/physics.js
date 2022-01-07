@@ -4,6 +4,9 @@ let info = document.getElementById('debug')
 let world;
 
 export const bodies = [];
+export const flags = {
+    isPlayerOnTheGround: false
+}
 
 export function initPhysics() {
     world = new World({
@@ -18,13 +21,14 @@ export function initPhysics() {
     return world;
 }
 
-export function addBox(size, pos, move) {
-    const body = world.add({ size, pos, move, density: 1 });
+export function addBox(size, pos, name, move) {
+    const body = world.add({ size, pos, move, name, density: 1 });
     bodies.push(body);
     return body;
 }
 
 export function updatePhysics () {
     world.step();
-    info.innerHTML = world.getInfo();
+    flags.isPlayerOnTheGround = !!world.checkContact('player', 'ground');
+    info.innerHTML = `<p>${JSON.stringify(flags, null, 2)} </p>` + world.getInfo();
 }
