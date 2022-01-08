@@ -8,22 +8,22 @@ export function startListening() {
         switch (e.code) {
             case 'Space': EVENT_BUS.emit('jump');
                 break;
-            case 'KeyA': EVENT_BUS.emit('left');
+            case 'KeyA': EVENT_BUS.emit('yawLeft');
                 break;
-            case 'KeyW': EVENT_BUS.emit('forward');
+            case 'KeyW': EVENT_BUS.emit('throttleUp');
                 break;
-            case 'KeyS': EVENT_BUS.emit('back');
+            case 'KeyS': EVENT_BUS.emit('throttleDown');
                 break;
-            case 'KeyD': EVENT_BUS.emit('right');
+            case 'KeyD': EVENT_BUS.emit('yawRight');
                 break;
 
-            case 'KeyJ': EVENT_BUS.emit('yawLeft');
+            case 'KeyJ': EVENT_BUS.emit('left');
                 break;
-            case 'KeyI': EVENT_BUS.emit('throttleUp');
+            case 'KeyI': EVENT_BUS.emit('forward');
                 break;
-            case 'KeyK': EVENT_BUS.emit('throttleDown');
+            case 'KeyK': EVENT_BUS.emit('back');
                 break;
-            case 'KeyL': EVENT_BUS.emit('yawRight');
+            case 'KeyL': EVENT_BUS.emit('right');
                 break;
             case 'KeyC': EVENT_BUS.emit('cameraToggle');
                 break;

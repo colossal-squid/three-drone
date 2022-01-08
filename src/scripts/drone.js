@@ -1,7 +1,8 @@
+import controller from './controller';
 import { EVENT_BUS, startListening } from './event-bus';
 import { flags } from './physics';
-const ROTATION_SPEED = 0.3;
-const THROTTLE = { x: 0, y: 1 / 6000, z: 0 };
+export const MAX_ROTATION_SPEED = -2;
+export const MAX_THROTTLE = 1 / 6000;
 const STOP = { x: 0, y: 0, z: 0 };
 const SPEED = 0.0005, JUMP = 0.003;
 const MOVEMENT_IMPULSES = {
@@ -33,18 +34,6 @@ export class Drone {
                 }
                 this.movePlayer(MOVEMENT_IMPULSES[eventName])
             });
-            EVENT_BUS.on('throttleUp', () => {
-                this.upforce = THROTTLE;
-            })
-            EVENT_BUS.on('throttleDown', () => {
-                this.upforce = STOP;
-            })
-            EVENT_BUS.on('yawLeft', () => {
-                this.body.angularVelocity.add({x: 0, z:0, y: ROTATION_SPEED})
-            })
-            EVENT_BUS.on('yawRight', () => {
-                this.body.angularVelocity.add({x: 0, z:0, y: -ROTATION_SPEED})
-            })
         });
 
     }
@@ -63,6 +52,10 @@ export class Drone {
 
     // called every frame
     update() {
+        this.upforce = {
+            x: 0, y: MAX_THROTTLE * (1 + controller.throttle / 2), z: 0
+        };
+        this.body.angularVelocity.y = MAX_ROTATION_SPEED * controller.yaw;
         this.body.applyImpulse(this.body.getPosition(), this.upforce);
     }
 }

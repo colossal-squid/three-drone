@@ -1,12 +1,13 @@
 import {
     PerspectiveCamera, Scene, BoxGeometry,
     MeshNormalMaterial, MeshBasicMaterial, Mesh,
-    WebGLRenderer, TextureLoader,
+    WebGLRenderer, TextureLoader, LoadingManager,
     BackSide
 } from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { EVENT_BUS } from './event-bus';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 
 const waterTexture = new TextureLoader().load('public/water.png');
 const groundTexture = new TextureLoader().load('public/ground.jpeg');
@@ -21,6 +22,20 @@ let camera, scene, renderer;
 let controls, meshes = [];
 let cameraMode = MODE_FPV;
 
+function loadPlayerModel() {
+    return new Promise((resolve) => {
+        new OBJLoader( new LoadingManager() )
+        .setPath( 'public/' )
+        .load( 'drone.obj', function ( mesh ) {
+            mesh.traverse(function(child) {
+                if (child instanceof Mesh) {
+                    child.material = PLAYER_MATERIAL;
+                }
+            });
+            resolve(mesh)
+        });
+    })
+}
 function createSkybox() {
     const bk = new TextureLoader().load("public/skybox/xpos.png");
     const ft = new TextureLoader().load("public/skybox/xneg.png");
@@ -32,7 +47,7 @@ function createSkybox() {
         const material = new MeshBasicMaterial({ map: texture, side: BackSide });
         return material;
     });
-    const skyboxGeo = new BoxGeometry(10, 10, 10);
+    const skyboxGeo = new BoxGeometry(40, 40, 40);
     const skybox = new Mesh(skyboxGeo, materialArray);
     scene.add(skybox);
 }
@@ -40,7 +55,7 @@ export function initThreeJs() {
     camera = new PerspectiveCamera(
         120,
         window.innerWidth / window.innerHeight,
-        0.01, 20);
+        0.01, 5000);
     camera.position.set(-1, 0.6, 1.2);
     camera.rotation.set(-0.5, -0.6, -0.3);
     window.camera = camera;
@@ -60,6 +75,7 @@ function toggleCameraMode() {
     } else {
         cameraMode = MODE_FPV;
     }
+    console.log('cameraMode:', cameraMode)
 }
 export function updateMeshPositions(bodies) {
     let i = bodies.length;
@@ -67,7 +83,7 @@ export function updateMeshPositions(bodies) {
         const body = bodies[i];
         const mesh = meshes[i];
 
-        if (!body.sleeping) {
+        if (!body.sleeping && mesh) {
             mesh.position.copy(body.getPosition());
             mesh.quaternion.copy(body.getQuaternion());
         }
@@ -86,12 +102,22 @@ export function updateRenderer(bodies, drone) {
 
 function updateCamera(drone) {
     camera.position.copy(drone.getPosition());
+    // camera.position.y += 0.1;
     camera.quaternion.copy(drone.getQuaternion());
     camera.updateProjectionMatrix();
 }
 
+export async function addPlayer (size, position, rotation) {
+    const mesh = await loadPlayerModel();
+    mesh.scale.set(...size)
+    mesh.position.set(position[0], position[1], position[2]);
+    mesh.rotation.set(rotation[0] * ToRad, rotation[1] * ToRad, rotation[2] * ToRad);
+    scene.add(mesh);
+    meshes.push(mesh);
+}
 export function addBoxMesh(size, position, name, rotation = [0, 0, 0]) {
-    const geometry = new BoxGeometry(...size);
+    let geometry = new BoxGeometry(...size);
+
     let material = MATERIAL;
     switch (name) {
         case 'player': material = PLAYER_MATERIAL;
