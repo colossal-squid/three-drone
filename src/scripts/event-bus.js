@@ -16,6 +16,17 @@ export function startListening() {
                 break;
             case 'KeyD': EVENT_BUS.emit('right');
                 break;
+
+            case 'KeyJ': EVENT_BUS.emit('yawLeft');
+                break;
+            case 'KeyI': EVENT_BUS.emit('throttleUp');
+                break;
+            case 'KeyK': EVENT_BUS.emit('throttleDown');
+                break;
+            case 'KeyL': EVENT_BUS.emit('yawRight');
+                break;
+            case 'KeyC': EVENT_BUS.emit('cameraToggle');
+                break;
         }
     })
 }

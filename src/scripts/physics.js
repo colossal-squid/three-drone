@@ -21,14 +21,15 @@ export function initPhysics() {
     return world;
 }
 
-export function addBox(size, pos, name, move) {
+export function addBox(size, pos, name, move, [x, y, z]) {
     const body = world.add({ size, pos, move, name, density: 1 });
+    body.setRotation({ x, y, z });
     bodies.push(body);
     return body;
 }
 
-export function updatePhysics () {
+export function updatePhysics() {
     world.step();
     flags.isPlayerOnTheGround = !!world.checkContact('player', 'ground');
-    info.innerHTML = `<p>${JSON.stringify(flags, null, 2)} </p>` + world.getInfo();
+    // info.innerHTML = `<p>${JSON.stringify(flags, null, 2)} </p>` + world.getInfo();
 }
