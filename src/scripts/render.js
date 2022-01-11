@@ -8,6 +8,7 @@ import {
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { EVENT_BUS } from './event-bus';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { WORLD_SIZE } from './constants';
 
 const waterTexture = new TextureLoader().load('public/water.png');
 const groundTexture = new TextureLoader().load('public/ground.jpeg');
@@ -47,7 +48,7 @@ function createSkybox() {
         const material = new MeshBasicMaterial({ map: texture, side: BackSide });
         return material;
     });
-    const skyboxGeo = new BoxGeometry(40, 40, 40);
+    const skyboxGeo = new BoxGeometry(WORLD_SIZE, WORLD_SIZE, WORLD_SIZE);
     const skybox = new Mesh(skyboxGeo, materialArray);
     scene.add(skybox);
 }

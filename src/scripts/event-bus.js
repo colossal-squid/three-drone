@@ -4,9 +4,18 @@ export const EVENT_BUS = new Eev();
 
 export function startListening() {
     // init controls 
+    document.addEventListener('keyup', e => {
+        switch (e.code) {
+            case 'KeyA':
+            case 'KeyD':
+                EVENT_BUS.emit('yawCenter');
+                break;
+        }
+    });
+
     document.addEventListener('keydown', e => {
         switch (e.code) {
-            case 'Space': EVENT_BUS.emit('jump');
+            case 'Space': EVENT_BUS.emit('arm');
                 break;
             case 'KeyA': EVENT_BUS.emit('yawLeft');
                 break;

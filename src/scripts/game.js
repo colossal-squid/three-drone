@@ -2,6 +2,8 @@ import { initPhysics, addBox, updatePhysics, bodies } from './physics';
 import { initThreeJs, addBoxMesh, updateRenderer, addPlayer } from './render';
 import { Drone } from './drone';
 import { initOverlay } from './overlay';
+import controller from './controller';
+import { WORLD_SIZE } from './constants';
 
 let drone;
 
@@ -18,7 +20,7 @@ function createLevel() {
     const groundPos2 = [1, 0.2, 0];
     createBox(groundSize, groundPos2, 'ground');
 
-    createBox([40, 0.05, 40], [0, -0.2, 0], 'water');
+    createBox([WORLD_SIZE, 0.05, WORLD_SIZE], [0, -0.2, 0], 'water');
 }
 
 async function createPlayer() {
@@ -39,6 +41,7 @@ export async function start() {
     // start animation loop
     function update() {
         requestAnimationFrame(update);
+        controller.update();
         drone.update();
         updatePhysics();
         updateRenderer(bodies, drone);
