@@ -21,8 +21,8 @@ export function initPhysics() {
     return world;
 }
 
-export function addBox(size, pos, name, move, [x, y, z]) {
-    const body = world.add({ size, pos, move, name, density: 1 });
+export function addBox(size, pos, name, move, [x, y, z], density = 1) {
+    const body = world.add({ size, pos, move, name, density });
     body.setRotation({ x, y, z });
     bodies.push(body);
     return body;

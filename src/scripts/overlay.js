@@ -38,12 +38,12 @@ export function initOverlay() {
 
         // left stick 
         graphics.beginFill(0xFF0000, 1);
-        graphics.drawRect( 45 + (controller.yaw * 50), 45 + (-controller.throttle * 50), 10, 10);
+        graphics.drawRect( 45 + (-controller.yaw * 50), 45 + (-controller.throttle * 50), 10, 10);
         graphics.endFill();
 
         // right stick
         graphics.beginFill(0xFF0000, 1);
-        graphics.drawRect(245, 45, 10, 10);
+        graphics.drawRect(245 + (controller.pitch * 50) , 45 + (-controller.roll * 50), 10, 10);
         graphics.endFill();
 
         throttle.text = 'T' + (1000000 * (MAX_THROTTLE * (1 + controller.throttle / 2))).toFixed(2)
