@@ -13,6 +13,7 @@ import { WORLD_SIZE } from './constants';
 const waterTexture = new TextureLoader().load('public/water.png');
 const groundTexture = new TextureLoader().load('public/ground.jpeg');
 const ToRad = 0.0174532925199432957,
+    SCALE = 100, // Oimo.js to three 
     MODE_FPV = 'fpv', MODE_THIRD_PERSON = 'third',
     MATERIAL = new MeshNormalMaterial(),
     PLAYER_MATERIAL = MATERIAL,//new MeshBasicMaterial({ color: 0xFF0000 }),
@@ -21,7 +22,7 @@ const ToRad = 0.0174532925199432957,
 
 let camera, scene, renderer;
 let controls, meshes = [];
-let cameraMode = MODE_FPV;
+let cameraMode = MODE_THIRD_PERSON;
 
 function loadPlayerModel() {
     return new Promise((resolve) => {
@@ -56,9 +57,9 @@ export function initThreeJs() {
     camera = new PerspectiveCamera(
         120,
         window.innerWidth / window.innerHeight,
-        0.01, 5000);
-    camera.position.set(-1, 0.6, 1.2);
-    camera.rotation.set(-0.5, -0.6, -0.3);
+        0.01, 10000);
+    camera.position.set( -0.3, 3, 1.5);
+    camera.rotation.set(1, -0.1, -0.2);
     window.camera = camera;
     scene = new Scene();
 
@@ -111,7 +112,11 @@ function updateCamera(drone) {
 export async function addPlayer (size, position, rotation) {
     const mesh = await loadPlayerModel();
     mesh.scale.set(...size)
-    mesh.position.set(position[0], position[1], position[2]);
+    mesh.position.set(
+        position[0],
+        position[1], 
+        position[2]
+    );
     mesh.rotation.set(rotation[0] * ToRad, rotation[1] * ToRad, rotation[2] * ToRad);
     scene.add(mesh);
     meshes.push(mesh);
@@ -129,7 +134,11 @@ export function addBoxMesh(size, position, name, rotation = [0, 0, 0]) {
             break;
     }
     const mesh = new Mesh(geometry, material);
-    mesh.position.set(position[0], position[1], position[2]);
+    mesh.position.set(
+        position[0], 
+        position[1], 
+        position[2]
+    );
     mesh.rotation.set(rotation[0] * ToRad, rotation[1] * ToRad, rotation[2] * ToRad);
     scene.add(mesh);
     meshes.push(mesh);

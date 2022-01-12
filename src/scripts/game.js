@@ -14,17 +14,19 @@ function createBox(size, pos, name, move = false, rot = [0, 0, 0]) {
 }
 
 function createLevel() {
-    const groundSize = [0.7, 0.05, 0.7], groundPos = [-1, 0, 0];
+    const groundSize = [2, 1, 2], 
+    groundPos = [-2, 0, 0];
     createBox(groundSize, groundPos, 'ground');
 
-    const groundPos2 = [1, 0.2, 0];
+    const groundPos2 = [2, 0, 0];
     createBox(groundSize, groundPos2, 'ground');
 
     createBox([WORLD_SIZE, 0.05, WORLD_SIZE], [0, -0.2, 0], 'water');
 }
 
 async function createPlayer() {
-    const testCubeSize = [0.1, 0.1, 0.1], testCubePos = [-1, 0.3, 0];
+    const testCubeSize = [0.1, 0.1, 0.1], 
+    testCubePos = [-2, 4, 0];
     const playerBody = addBox(testCubeSize, testCubePos, 'player', true, [-90, 270, 0]);
     addPlayer(testCubeSize, testCubePos, [-90, 270, 0]);
     drone = new Drone(playerBody);
