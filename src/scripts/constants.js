@@ -1,1 +1,1 @@
-export const WORLD_SIZE = 10;
+export const WORLD_SIZE = 100;

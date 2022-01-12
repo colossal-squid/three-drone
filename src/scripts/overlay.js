@@ -25,6 +25,10 @@ export function initOverlay() {
     ground.position.set(100, 40)
     app.stage.addChild(ground);
 
+    const armed = new PIXI.Text('DISARMED', { fill: 0xFFFFFF});
+    armed.position.set(100, 60)
+    app.stage.addChild(armed);
+
     app.ticker.add(() => {
         graphics.clear();
 
@@ -49,5 +53,6 @@ export function initOverlay() {
         throttle.text = 'T' + (1000000 * (MAX_THROTTLE * (1 + controller.throttle / 2))).toFixed(2)
         yaw.text = 'Y' + (100 * (MAX_ROTATION_SPEED * controller.yaw)).toFixed(2)
         ground.text = flags.isPlayerOnTheGround ? 'GRND' : 'SKY';
+        armed.text = controller.armed ? 'ARMED' : 'DISRM'
     });
 }

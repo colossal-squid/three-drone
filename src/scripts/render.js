@@ -2,19 +2,21 @@ import {
     PerspectiveCamera, Scene, BoxGeometry,
     MeshNormalMaterial, MeshBasicMaterial, Mesh,
     WebGLRenderer, TextureLoader, LoadingManager,
-    BackSide
+    BackSide, AmbientLight, Vector3
 } from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { EVENT_BUS } from './event-bus';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { WORLD_SIZE } from './constants';
 
 const waterTexture = new TextureLoader().load('public/water.png');
 const groundTexture = new TextureLoader().load('public/ground.jpeg');
 const ToRad = 0.0174532925199432957,
-    SCALE = 100, // Oimo.js to three 
-    MODE_FPV = 'fpv', MODE_THIRD_PERSON = 'third',
+    MODE_FPV = 'fpv',
+    MODE_THIRD_PERSON = 'third',
+    MODE_STATIC = 'static',
     MATERIAL = new MeshNormalMaterial(),
     PLAYER_MATERIAL = MATERIAL,//new MeshBasicMaterial({ color: 0xFF0000 }),
     GROUND_MATERIAL = new MeshBasicMaterial({ map: groundTexture }),
@@ -25,17 +27,27 @@ let controls, meshes = [];
 let cameraMode = MODE_THIRD_PERSON;
 
 function loadPlayerModel() {
+    const PATH = 'public/';
     return new Promise((resolve) => {
-        new OBJLoader( new LoadingManager() )
-        .setPath( 'public/' )
-        .load( 'drone.obj', function ( mesh ) {
-            mesh.traverse(function(child) {
-                if (child instanceof Mesh) {
-                    child.material = PLAYER_MATERIAL;
-                }
-            });
-            resolve(mesh)
-        });
+        const loadingManager = new LoadingManager();
+        new MTLLoader(loadingManager)
+            .setPath(PATH)
+            .load('drone.mtl', (materials) => {
+                materials.preload();
+                new OBJLoader(loadingManager)
+                    .setMaterials(materials)
+                    .setPath(PATH)
+                    .load('drone.obj', function (mesh) {
+                        // mesh.traverse(function (child) {
+                        //     if (child instanceof Mesh) {
+                        //         child.material = PLAYER_MATERIAL;
+                        //     }
+                        // });
+                        resolve(mesh)
+                    });
+            })
+
+
     })
 }
 function createSkybox() {
@@ -55,10 +67,10 @@ function createSkybox() {
 }
 export function initThreeJs() {
     camera = new PerspectiveCamera(
-        120,
+        80,
         window.innerWidth / window.innerHeight,
         0.01, 10000);
-    camera.position.set( -0.3, 3, 1.5);
+    camera.position.set(-0.3, 3, 1.5);
     camera.rotation.set(1, -0.1, -0.2);
     window.camera = camera;
     scene = new Scene();
@@ -67,6 +79,10 @@ export function initThreeJs() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
     controls = new OrbitControls(camera, renderer.domElement);
+
+    const light = new AmbientLight(0x404040); // soft white light
+    scene.add(light);
+
     createSkybox()
     EVENT_BUS.on('cameraToggle', toggleCameraMode);
 }
@@ -74,7 +90,9 @@ export function initThreeJs() {
 function toggleCameraMode() {
     if (cameraMode === MODE_FPV) {
         cameraMode = MODE_THIRD_PERSON;
-    } else {
+    } else if (cameraMode === MODE_THIRD_PERSON) {
+        cameraMode = MODE_STATIC;
+    } else if (cameraMode === MODE_STATIC) {
         cameraMode = MODE_FPV;
     }
     console.log('cameraMode:', cameraMode)
@@ -94,7 +112,7 @@ export function updateMeshPositions(bodies) {
 
 export function updateRenderer(bodies, drone) {
     updateMeshPositions(bodies)
-    if (cameraMode === MODE_FPV) {
+    if (cameraMode === MODE_FPV || cameraMode === MODE_THIRD_PERSON) {
         updateCamera(drone);
     } else {
         controls.update();
@@ -103,18 +121,24 @@ export function updateRenderer(bodies, drone) {
 }
 
 function updateCamera(drone) {
-    camera.position.copy(drone.getPosition());
-    // camera.position.y += 0.1;
+    const { x, y, z } = drone.getPosition();
+    const v = new Vector3(x, y, z);
+    if (cameraMode === MODE_THIRD_PERSON) {
+        const THIRD_PERSON_MODE_OFFSET = new Vector3(0, 0.15, 0.35);
+        THIRD_PERSON_MODE_OFFSET.applyQuaternion(drone.getQuaternion());
+        v.add(THIRD_PERSON_MODE_OFFSET);
+    }
+    camera.position.copy(v);
     camera.quaternion.copy(drone.getQuaternion());
     camera.updateProjectionMatrix();
 }
 
-export async function addPlayer (size, position, rotation) {
+export async function addPlayer(size, position, rotation) {
     const mesh = await loadPlayerModel();
-    mesh.scale.set(...size)
+    mesh.scale.set(...size.map(s => s / 10))
     mesh.position.set(
         position[0],
-        position[1], 
+        position[1],
         position[2]
     );
     mesh.rotation.set(rotation[0] * ToRad, rotation[1] * ToRad, rotation[2] * ToRad);
@@ -135,8 +159,8 @@ export function addBoxMesh(size, position, name, rotation = [0, 0, 0]) {
     }
     const mesh = new Mesh(geometry, material);
     mesh.position.set(
-        position[0], 
-        position[1], 
+        position[0],
+        position[1],
         position[2]
     );
     mesh.rotation.set(rotation[0] * ToRad, rotation[1] * ToRad, rotation[2] * ToRad);

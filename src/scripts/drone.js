@@ -3,10 +3,11 @@ import controller from './controller';
 import { startListening } from './event-bus';
 import { flags } from './physics';
 export const MAX_ROTATION_SPEED = 2;
-export const MAX_THROTTLE = 1 / 6000;
+export const MAX_THROTTLE = 1 / 1600;
 export const MAX_FORWARD_FORCE = 1 / 20000;
+export const MAX_PITCH_FORCE = 1 / 3000;
 const STOP = { x: 0, y: 0, z: 0 };
-const SPEED = 1 / 1000;
+const RIGHT_STICK_ANGLE_SPEED = 0.5;
 
 export class Drone {
 
@@ -25,10 +26,14 @@ export class Drone {
     }
 
     moveUpAndDown() {
-        this.upforce = {
+        const upforce = {
             x: 0, y: MAX_THROTTLE * (1 + controller.throttle / 2), z: 0
         };
-        this.body.applyImpulse(this.body.getPosition(), this.upforce);
+        const upforceRel = new Vec3(0,  MAX_THROTTLE * (1 + controller.throttle / 2) ,0);
+        // debugger;
+        upforceRel.applyQuaternion(this.body.getQuaternion());
+        this.body.applyImpulse(this.body.getPosition(), upforceRel );
+        // console.log( upforceRel.y + ' - ' + upforce.y)
     }
 
     rotate() {
@@ -38,15 +43,19 @@ export class Drone {
     moveForward() {
         // rotate obj
         // relative force
-        const rollVector = new Vec3(0, 0, MAX_FORWARD_FORCE * -controller.roll);
+        // const rollVector = new Vec3(0, MAX_FORWARD_FORCE * -controller.roll ,0);
         // make it global
-        rollVector.applyQuaternion(this.body.getQuaternion());
-        this.body.applyImpulse(this.body.getPosition(), rollVector);
-        this.body.angularVelocity.z = SPEED * -controller.roll;
+        // rollVector.applyQuaternion(this.body.getQuaternion());
+        // this.body.applyImpulse(this.body.getPosition(), rollVector);
+        this.body.angularVelocity.z = RIGHT_STICK_ANGLE_SPEED * controller.roll;
     }
 
     moveSideways() {
-        this.body.angularVelocity.x = SPEED * controller.pitch; // this.body.applyImpulse(this.body.getPosition(), this.rollForce);
+        // const pitchVector = new Vec3(MAX_PITCH_FORCE * controller.roll, 0, 0);
+        // make it global
+        // pitchVector.applyQuaternion(this.body.getQuaternion());
+        // this.body.applyImpulse(this.body.getPosition(), pitchVector);
+        this.body.angularVelocity.x = RIGHT_STICK_ANGLE_SPEED * controller.pitch; // this.body.applyImpulse(this.body.getPosition(), this.rollForce);
     }
 
     // called every frame
@@ -55,7 +64,6 @@ export class Drone {
             return;
         }
         this.moveUpAndDown()
-        this.pitchForce = { x: SPEED * controller.pitch, y: 0, z: 0 }
         if (!flags.isPlayerOnTheGround) {
             this.rotate()
             this.moveForward();
