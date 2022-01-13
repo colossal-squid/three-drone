@@ -17,13 +17,13 @@ export function startListening() {
         switch (e.code) {
             case 'Space': EVENT_BUS.emit('arm');
                 break;
-            case 'KeyA': EVENT_BUS.emit('yawLeft');
+            case 'KeyA': EVENT_BUS.emit('yawRight');
                 break;
             case 'KeyW': EVENT_BUS.emit('throttleUp');
                 break;
             case 'KeyS': EVENT_BUS.emit('throttleDown');
                 break;
-            case 'KeyD': EVENT_BUS.emit('yawRight');
+            case 'KeyD': EVENT_BUS.emit('yawLeft');
                 break;
 
             case 'KeyJ': EVENT_BUS.emit('left');
@@ -35,6 +35,9 @@ export function startListening() {
             case 'KeyL': EVENT_BUS.emit('right');
                 break;
             case 'KeyC': EVENT_BUS.emit('cameraToggle');
+                break;
+            case 'KeyW': 
+                window.location.reload();
                 break;
         }
     })

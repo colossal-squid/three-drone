@@ -1,13 +1,13 @@
 import { Vec3 } from 'oimo';
-import { GRAVITY, WEIGHT_KG } from './constants';
+import { GRAVITY, KEYBOARD_CONTROLS, WEIGHT_KG } from './constants';
 import controller from './controller';
 import { startListening } from './event-bus';
 import { flags } from './physics';
 export const MAX_ROTATION_SPEED = 2;
 // the force on my drone is F = mg, = GRAVITY * WEIGHT_KG
 export const MAX_THROTTLE = GRAVITY * WEIGHT_KG;
-export const MAX_FORWARD_FORCE = 1 / 10;
-export const MAX_PITCH_FORCE = 1 / 10;
+export const MAX_FORWARD_FORCE = 1 / 50;
+export const MAX_PITCH_FORCE = 1 / 50;
 const STOP = { x: 0, y: 0, z: 0 };
 const RIGHT_STICK_ANGLE_SPEED = 0.5;
 
@@ -66,6 +66,7 @@ export class Drone {
             .join('\n');
         debugText += '\nmass: ' + (this.body.mass * 1000).toFixed(2) + 'g\n';
         debugText += '\ngp: ' + controller.name + '\n';
+        debugText += KEYBOARD_CONTROLS;
         this.debug.innerHTML = `<pre>${debugText}</pre>`
         if (!controller.armed) {
             return;

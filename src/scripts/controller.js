@@ -1,6 +1,6 @@
 import { EVENT_BUS } from "./event-bus";
 
-const THROTTLE_PER_FRAME = 0.05;
+const THROTTLE_PER_FRAME = 0.08;
 const YAW_PER_FRAME = 0.1;
 
 
@@ -37,15 +37,35 @@ class Controller {
             this.yaw = 0;
         });
 
+        EVENT_BUS.on('forward', () => {
+            let nextRoll = this.roll + 3 * THROTTLE_PER_FRAME;
+            this.roll = Math.min(1, nextRoll);
+        })
+
+        EVENT_BUS.on('back', () => {
+            let nextRoll = this.roll - 3 * THROTTLE_PER_FRAME;
+            this.roll = Math.max(-1, nextRoll);
+        });
+
+        EVENT_BUS.on('left', () => {
+            let nextPitch = this.pitch - 3 * THROTTLE_PER_FRAME;
+            this.pitch = Math.max(-1, nextPitch);
+        });
+
+        EVENT_BUS.on('right', () => {
+            let nextPitch = this.pitch + 3 * THROTTLE_PER_FRAME;
+            this.pitch = Math.min(1, nextPitch);
+        })
+
         EVENT_BUS.on('arm', () => {
             this.armed = !this.armed;
         })
-        window.addEventListener("gamepadconnected",  (e) =>{
+        window.addEventListener("gamepadconnected", (e) => {
             console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
                 e.gamepad.index, e.gamepad.id,
                 e.gamepad.buttons.length, e.gamepad.axes.length);
         });
-        window.addEventListener("gamepaddisconnected",  (e) => {
+        window.addEventListener("gamepaddisconnected", (e) => {
             console.log("Gamepad disconnected from index %d: %s",
                 e.gamepad.index, e.gamepad.id);
         });
@@ -54,11 +74,11 @@ class Controller {
     }
 
     get name() {
-        const gp = (navigator.getGamepads()||[{}])[0]
-        return (gp.id || '').substring(0, 18)+'...';
+        const gp = (navigator.getGamepads() || [{}])[0]
+        return (gp?.id || 'Keyboard controls').substring(0, 18) + '...';
     }
     update() {
-        const gp = (navigator.getGamepads()||[])[0];
+        const gp = (navigator.getGamepads() || [])[0];
         if (gp) {
             this.throttle = gp.axes[1];
             this.yaw = gp.axes[0];
