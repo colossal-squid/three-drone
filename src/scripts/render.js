@@ -2,7 +2,7 @@ import {
     PerspectiveCamera, Scene, BoxGeometry,
     MeshNormalMaterial, MeshBasicMaterial, Mesh,
     WebGLRenderer, TextureLoader, LoadingManager,
-    BackSide, AmbientLight, Vector3
+    BackSide, AmbientLight, Vector3, Box3, Object3D, Group,
 } from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
@@ -10,6 +10,7 @@ import { EVENT_BUS } from './event-bus';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { WORLD_SIZE } from './constants';
+import controller from './controller';
 
 const waterTexture = new TextureLoader().load('public/water.png');
 const groundTexture = new TextureLoader().load('public/ground.jpeg');
@@ -24,7 +25,7 @@ const ToRad = 0.0174532925199432957,
 
 let camera, scene, renderer;
 let controls, meshes = [];
-let cameraMode = MODE_THIRD_PERSON;
+let cameraMode = MODE_THIRD_PERSON, props = [];
 
 function loadPlayerModel() {
     const PATH = 'public/';
@@ -38,11 +39,26 @@ function loadPlayerModel() {
                     .setMaterials(materials)
                     .setPath(PATH)
                     .load('drone.obj', function (mesh) {
-                        // mesh.traverse(function (child) {
-                        //     if (child instanceof Mesh) {
-                        //         child.material = PLAYER_MATERIAL;
-                        //     }
-                        // });
+                        mesh.children
+                        .filter(p => p.name.includes('Prope'))
+                        .forEach((prop, i) => {
+                            const positions = [
+                                [2, 0, 2],
+                                [-2, 0, -2],
+                                [-2, 0, 2],
+                                [2, 0, -2],
+                            ];
+                            prop.material = PLAYER_MATERIAL;
+                            prop.geometry.center();
+                            const pivot = new Object3D();
+                            mesh.add(pivot)
+                            prop.removeFromParent();
+                            prop.scale.set(2,2,2)
+                            pivot.add(prop);
+                            pivot.position.set(...positions[i])
+                            prop.position.set(0,0,0)
+                            props.push(prop);
+                        })
                         resolve(mesh)
                     });
             })
@@ -116,6 +132,13 @@ export function updateRenderer(bodies, drone) {
         updateCamera(drone);
     } else {
         controls.update();
+    }
+
+    if (controller.armed) {
+        // rotate props
+        props.forEach(p => {
+            p.rotateOnAxis(p.up, 0.3);
+        })
     }
     renderer.render(scene, camera);
 }
