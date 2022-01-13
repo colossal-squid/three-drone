@@ -53,6 +53,10 @@ class Controller {
         // this.debug = document.querySelector('#debug');
     }
 
+    get name() {
+        const gp = (navigator.getGamepads()||[{}])[0]
+        return (gp.id || '').substring(0, 18)+'...';
+    }
     update() {
         const gp = (navigator.getGamepads()||[])[0];
         if (gp) {

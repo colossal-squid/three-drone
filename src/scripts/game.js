@@ -27,7 +27,8 @@ function createLevel() {
 async function createPlayer() {
     const testCubeSize = [0.2, 0.1, 0.2], 
     testCubePos = [-2, 4, 0];
-    const playerBody = addBox(testCubeSize, testCubePos, 'player', true, [0, 0, 0]);
+    const playerBody = addBox(testCubeSize, testCubePos, 'player', true, [0, 0, 0], 60);
+    playerBody.allowSleep = false;
     addPlayer(testCubeSize, testCubePos, [0, 0, 0]);
     drone = new Drone(playerBody);
 }

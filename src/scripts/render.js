@@ -137,7 +137,7 @@ export function updateRenderer(bodies, drone) {
     if (controller.armed) {
         // rotate props
         props.forEach(p => {
-            p.rotateOnAxis(p.up, 0.3);
+            p.rotateOnAxis(p.up, 0.7 * ((controller.throttle + 1)/2));
         })
     }
     renderer.render(scene, camera);

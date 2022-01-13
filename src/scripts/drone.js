@@ -1,11 +1,13 @@
 import { Vec3 } from 'oimo';
+import { GRAVITY, WEIGHT_KG } from './constants';
 import controller from './controller';
 import { startListening } from './event-bus';
 import { flags } from './physics';
 export const MAX_ROTATION_SPEED = 2;
-export const MAX_THROTTLE = 1 / 1600;
-export const MAX_FORWARD_FORCE = 1 / 20000;
-export const MAX_PITCH_FORCE = 1 / 3000;
+// the force on my drone is F = mg, = GRAVITY * WEIGHT_KG
+export const MAX_THROTTLE = GRAVITY * WEIGHT_KG;
+export const MAX_FORWARD_FORCE = 1 / 10;
+export const MAX_PITCH_FORCE = 1 / 10;
 const STOP = { x: 0, y: 0, z: 0 };
 const RIGHT_STICK_ANGLE_SPEED = 0.5;
 
@@ -15,6 +17,7 @@ export class Drone {
         this.body = body;
         this.upforce = STOP;
         startListening();
+        this.debug = document.querySelector('#debug');
     }
 
     getPosition() {
@@ -26,13 +29,9 @@ export class Drone {
     }
 
     moveUpAndDown() {
-        const upforce = {
-            x: 0, y: MAX_THROTTLE * (1 + controller.throttle / 2), z: 0
-        };
-        const upforceRel = new Vec3(0,  MAX_THROTTLE * (1 + controller.throttle / 2) ,0);
-        // debugger;
+        const upforceRel = new Vec3(0, MAX_THROTTLE * Math.exp( controller.throttle), 0);
         upforceRel.applyQuaternion(this.body.getQuaternion());
-        this.body.applyImpulse(this.body.getPosition(), upforceRel );
+        this.body.linearVelocity.y = -(GRAVITY * WEIGHT_KG) + upforceRel.y;
         // console.log( upforceRel.y + ' - ' + upforce.y)
     }
 
@@ -43,23 +42,31 @@ export class Drone {
     moveForward() {
         // rotate obj
         // relative force
-        // const rollVector = new Vec3(0, MAX_FORWARD_FORCE * -controller.roll ,0);
+        const rollVector = new Vec3(0, 0, MAX_FORWARD_FORCE * -controller.roll);
         // make it global
-        // rollVector.applyQuaternion(this.body.getQuaternion());
-        // this.body.applyImpulse(this.body.getPosition(), rollVector);
-        this.body.angularVelocity.z = RIGHT_STICK_ANGLE_SPEED * controller.roll;
+        rollVector.applyQuaternion(this.body.getQuaternion());
+        this.body.applyImpulse(this.body.getPosition(), rollVector);
+        // this.body.angularVelocity.z = RIGHT_STICK_ANGLE_SPEED * controller.roll;
     }
 
     moveSideways() {
-        // const pitchVector = new Vec3(MAX_PITCH_FORCE * controller.roll, 0, 0);
+        const pitchVector = new Vec3(MAX_PITCH_FORCE * controller.pitch, 0, 0);
         // make it global
-        // pitchVector.applyQuaternion(this.body.getQuaternion());
-        // this.body.applyImpulse(this.body.getPosition(), pitchVector);
-        this.body.angularVelocity.x = RIGHT_STICK_ANGLE_SPEED * controller.pitch; // this.body.applyImpulse(this.body.getPosition(), this.rollForce);
+        pitchVector.applyQuaternion(this.body.getQuaternion());
+        this.body.applyImpulse(this.body.getPosition(), pitchVector);
+        // this.body.angularVelocity.x = RIGHT_STICK_ANGLE_SPEED * -controller.pitch; // this.body.applyImpulse(this.body.getPosition(), this.rollForce);
     }
 
     // called every frame
     update() {
+        let debugText = [
+            this.body.linearVelocity,
+            this.body.angularVelocity
+        ].map(({ x, y, z }) => `x:${x.toFixed(2)} y:${y.toFixed(2)} z: ${z.toFixed(2)}`)
+            .join('\n');
+        debugText += '\nmass: ' + (this.body.mass * 1000).toFixed(2) + 'g\n';
+        debugText += '\ngp: ' + controller.name + '\n';
+        this.debug.innerHTML = `<pre>${debugText}</pre>`
         if (!controller.armed) {
             return;
         }

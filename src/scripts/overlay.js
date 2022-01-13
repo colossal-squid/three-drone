@@ -50,7 +50,7 @@ export function initOverlay() {
         graphics.drawRect(245 + (controller.pitch * 50) , 45 + (-controller.roll * 50), 10, 10);
         graphics.endFill();
 
-        throttle.text = 'T' + (1000000 * (MAX_THROTTLE * (1 + controller.throttle / 2))).toFixed(2)
+        throttle.text = 'T' + (100 * ((MAX_THROTTLE * Math.exp( controller.throttle)).toFixed(2)));
         yaw.text = 'Y' + (100 * (MAX_ROTATION_SPEED * controller.yaw)).toFixed(2)
         ground.text = flags.isPlayerOnTheGround ? 'GRND' : 'SKY';
         armed.text = controller.armed ? 'ARMED' : 'DISRM'

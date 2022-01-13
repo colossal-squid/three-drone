@@ -1,6 +1,7 @@
 import { World } from 'oimo';
+import { GRAVITY } from './constants';
 
-let info = document.getElementById('debug')
+// let info = document.getElementById('debug')
 let world;
 
 export const bodies = [];
@@ -16,7 +17,7 @@ export function initPhysics() {
         worldscale: 1, // scale full world 
         random: true,  // randomize sample
         info: true,   // calculate statistic or not
-        gravity: [0, -9.8, 0]
+        gravity: [0, -GRAVITY, 0]
     });
     return world;
 }
