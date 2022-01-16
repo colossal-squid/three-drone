@@ -2,7 +2,7 @@ import {
     PerspectiveCamera, Scene, BoxGeometry,
     MeshNormalMaterial, MeshBasicMaterial, Mesh,
     WebGLRenderer, TextureLoader, LoadingManager,
-    BackSide, AmbientLight, Vector3, Box3, Object3D, Group,
+    BackSide, AmbientLight, Vector3, Box3, Object3D, Group, ArrowHelper
 } from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
@@ -21,11 +21,12 @@ const ToRad = 0.0174532925199432957,
     MATERIAL = new MeshNormalMaterial(),
     PLAYER_MATERIAL = MATERIAL,//new MeshBasicMaterial({ color: 0xFF0000 }),
     GROUND_MATERIAL = new MeshBasicMaterial({ map: groundTexture }),
-    WATER_MATERIAL = new MeshBasicMaterial({ map: waterTexture })
+    WATER_MATERIAL = new MeshBasicMaterial({ map: waterTexture }),
+    DEBUG = true
 
-let camera, scene, renderer;
+let camera, scene, renderer, debugArrows;
 let controls, meshes = [];
-let cameraMode = MODE_FPV, props = [];
+let cameraMode = MODE_THIRD_PERSON, props = [];
 
 function loadPlayerModel() {
     const PATH = 'public/';
@@ -66,6 +67,7 @@ function loadPlayerModel() {
 
     })
 }
+
 function createSkybox() {
     const bk = new TextureLoader().load("public/skybox/xpos.png");
     const ft = new TextureLoader().load("public/skybox/xneg.png");
@@ -81,6 +83,31 @@ function createSkybox() {
     const skybox = new Mesh(skyboxGeo, materialArray);
     scene.add(skybox);
 }
+
+function initDebugArrows(drone) {
+    const dir = new Vector3( 1, 2, 0 );
+    //normalize the direction vector (convert to vector of length 1)
+    dir.normalize();
+    const origin = drone.getBody().position;
+    const length = 0.2;
+    const hex = 0x00ff00;
+    const arrowHelper = new ArrowHelper( dir, origin, length, hex );
+    scene.add( arrowHelper );
+    debugArrows = {
+        upforce: arrowHelper
+    }
+}
+
+function updateDebugArrows(drone) {
+    debugArrows.upforce.position.set(
+        drone.getBody().position.x,
+        drone.getBody().position.y,
+        drone.getBody().position.z
+    );
+    debugArrows.upforce.setDirection(drone.getBody().linearVelocity);
+    debugArrows.upforce.setLength(drone.getBody().linearVelocity.length());
+}
+
 export function initThreeJs() {
     camera = new PerspectiveCamera(
         80,
@@ -113,6 +140,7 @@ function toggleCameraMode() {
     }
     console.log('cameraMode:', cameraMode)
 }
+
 export function updateMeshPositions(bodies) {
     let i = bodies.length;
     while (i--) {
@@ -140,7 +168,14 @@ export function updateRenderer(bodies, drone) {
             p.rotateOnAxis(p.up, 0.7 * ((controller.throttle + 1)/2));
         })
     }
+    if (DEBUG) {
+        if (!debugArrows) {
+            initDebugArrows(drone);
+        }
+        updateDebugArrows(drone);
+    }
     renderer.render(scene, camera);
+    
 }
 
 function updateCamera(drone) {
@@ -165,9 +200,11 @@ export async function addPlayer(size, position, rotation) {
         position[2]
     );
     mesh.rotation.set(rotation[0] * ToRad, rotation[1] * ToRad, rotation[2] * ToRad);
+    
     scene.add(mesh);
     meshes.push(mesh);
 }
+
 export function addBoxMesh(size, position, name, rotation = [0, 0, 0]) {
     let geometry = new BoxGeometry(...size);
 

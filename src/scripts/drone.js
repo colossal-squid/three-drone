@@ -17,7 +17,10 @@ export class Drone {
         this.body = body;
         this.upforce = STOP;
         startListening();
-        this.debug = document.querySelector('#debug');
+    }
+
+    getBody() {
+        return this.body;
     }
 
     getPosition() {
@@ -54,21 +57,11 @@ export class Drone {
         // make it global
         pitchVector.applyQuaternion(this.body.getQuaternion());
         this.body.applyImpulse(this.body.getPosition(), pitchVector);
-        this.body.angularVelocity.x = RIGHT_STICK_ANGLE_SPEED * -controller.pitch; // this.body.applyImpulse(this.body.getPosition(), this.rollForce);
+        // this.body.angularVelocity.x = RIGHT_STICK_ANGLE_SPEED * -controller.pitch; // this.body.applyImpulse(this.body.getPosition(), this.rollForce);
     }
 
     // called every frame
     update() {
-        let debugText = [
-            this.body.linearVelocity,
-            this.body.angularVelocity
-        ].map(({ x, y, z }) => `x:${x.toFixed(2)} y:${y.toFixed(2)} z: ${z.toFixed(2)}`)
-            .join('\n');
-        debugText += '\n' + controller.toString() + '\n';
-        debugText += '\nmass: ' + (this.body.mass * 1000).toFixed(2) + 'g\n';
-        debugText += '\ngp: ' + controller.name + '\n';
-        debugText += KEYBOARD_CONTROLS;
-        this.debug.innerHTML = `<pre>${debugText}</pre>`
         if (!controller.armed) {
             return;
         }

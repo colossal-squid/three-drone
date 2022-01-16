@@ -5,7 +5,7 @@ let engineSound = new Howl({
     src: ['public/drone.mp3'],
     loop: true
 });
-
+engineSound.volume(0);
 engineSound.play();
 
 export function updateAudio() {
