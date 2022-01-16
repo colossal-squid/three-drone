@@ -41,25 +41,25 @@ function loadPlayerModel() {
                     .setPath(PATH)
                     .load('drone.obj', function (mesh) {
                         mesh.children
-                        .filter(p => p.name.includes('Prope'))
-                        .forEach((prop, i) => {
-                            const positions = [
-                                [2, 0, 2],
-                                [-2, 0, -2],
-                                [-2, 0, 2],
-                                [2, 0, -2],
-                            ];
-                            prop.material = PLAYER_MATERIAL;
-                            prop.geometry.center();
-                            const pivot = new Object3D();
-                            mesh.add(pivot)
-                            prop.removeFromParent();
-                            prop.scale.set(2,2,2)
-                            pivot.add(prop);
-                            pivot.position.set(...positions[i])
-                            prop.position.set(0,0,0)
-                            props.push(prop);
-                        })
+                            .filter(p => p.name.includes('Prope'))
+                            .forEach((prop, i) => {
+                                const positions = [
+                                    [2, 0, 2],
+                                    [-2, 0, -2],
+                                    [-2, 0, 2],
+                                    [2, 0, -2],
+                                ];
+                                prop.material = PLAYER_MATERIAL;
+                                prop.geometry.center();
+                                const pivot = new Object3D();
+                                mesh.add(pivot)
+                                prop.removeFromParent();
+                                prop.scale.set(2, 2, 2)
+                                pivot.add(prop);
+                                pivot.position.set(...positions[i])
+                                prop.position.set(0, 0, 0)
+                                props.push(prop);
+                            })
                         resolve(mesh)
                     });
             })
@@ -85,27 +85,37 @@ function createSkybox() {
 }
 
 function initDebugArrows(drone) {
-    const dir = new Vector3( 1, 2, 0 );
-    //normalize the direction vector (convert to vector of length 1)
-    dir.normalize();
-    const origin = drone.getBody().position;
-    const length = 0.2;
-    const hex = 0x00ff00;
-    const arrowHelper = new ArrowHelper( dir, origin, length, hex );
-    scene.add( arrowHelper );
-    debugArrows = {
-        upforce: arrowHelper
-    }
+    debugArrows = {};
+    window.debugArrows = debugArrows;
+    const colors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFF00FF];
+
+    ['FL', 'BL', 'FR', 'BR'].forEach((key, idx) => {
+        const dir = new Vector3(0, 0, 0);
+        //normalize the direction vector (convert to vector of length 1)
+        dir.normalize();
+        const origin =  drone.mesh.position.clone();
+        if (idx == 0 || idx == 3) 
+            origin.x += 4;
+            if (idx == 2 || idx == 0) 
+            origin.z += 6;
+        const length = 0.2;
+        const hex = colors[idx];
+        const arrowHelper = new ArrowHelper(dir, origin, length, hex);
+        drone.mesh.add(arrowHelper);
+        debugArrows[`upforce${key}`] = arrowHelper;
+    });
 }
 
 function updateDebugArrows(drone) {
-    debugArrows.upforce.position.set(
-        drone.getBody().position.x,
-        drone.getBody().position.y,
-        drone.getBody().position.z
-    );
-    debugArrows.upforce.setDirection(drone.getBody().linearVelocity);
-    debugArrows.upforce.setLength(drone.getBody().linearVelocity.length());
+    drone.motorVectors.forEach(({ key, position, impulse }, idx) => {
+        debugArrows[`upforce${key}`].setDirection(
+            drone.getBody().linearVelocity
+        );
+        debugArrows[`upforce${key}`].setLength(
+            drone.getBody().linearVelocity.length()
+        );
+    })
+
 }
 
 export function initThreeJs() {
@@ -165,7 +175,7 @@ export function updateRenderer(bodies, drone) {
     if (controller.armed) {
         // rotate props
         props.forEach(p => {
-            p.rotateOnAxis(p.up, 0.7 * ((controller.throttle + 1)/2));
+            p.rotateOnAxis(p.up, 0.7 * ((controller.throttle + 1) / 2));
         })
     }
     if (DEBUG) {
@@ -175,7 +185,7 @@ export function updateRenderer(bodies, drone) {
         updateDebugArrows(drone);
     }
     renderer.render(scene, camera);
-    
+
 }
 
 function updateCamera(drone) {
@@ -200,9 +210,10 @@ export async function addPlayer(size, position, rotation) {
         position[2]
     );
     mesh.rotation.set(rotation[0] * ToRad, rotation[1] * ToRad, rotation[2] * ToRad);
-    
+
     scene.add(mesh);
     meshes.push(mesh);
+    return mesh;
 }
 
 export function addBoxMesh(size, position, name, rotation = [0, 0, 0]) {

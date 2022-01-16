@@ -5,17 +5,25 @@ import { startListening } from './event-bus';
 import { flags } from './physics';
 export const MAX_ROTATION_SPEED = 2;
 // the force on my drone is F = mg, = GRAVITY * WEIGHT_KG
-export const MAX_THROTTLE = GRAVITY * WEIGHT_KG;
+export const MAX_THROTTLE = GRAVITY * WEIGHT_KG / 138;
 export const MAX_FORWARD_FORCE = 1 / 50;
 export const MAX_PITCH_FORCE = 1 / 50;
 const STOP = { x: 0, y: 0, z: 0 };
 const RIGHT_STICK_ANGLE_SPEED = 5;
-
+const DRONE_SIZE = 1;
+const MOTOR_OFFSET = {
+    'FL': { x: -DRONE_SIZE, z: DRONE_SIZE, y: 0 },
+    'BL': { x: -DRONE_SIZE, z: -DRONE_SIZE, y: 0 },
+    'FR': { x: DRONE_SIZE, z: DRONE_SIZE, y: 0 },
+    'BR': { x: DRONE_SIZE, z: -DRONE_SIZE, y: 0 }
+}
 export class Drone {
 
-    constructor(body) {
+    constructor(body, mesh) {
         this.body = body;
+        this.mesh = mesh;
         this.upforce = STOP;
+        this.motorVectors = [];
         startListening();
     }
 
@@ -34,12 +42,21 @@ export class Drone {
     moveUpAndDown() {
         const upforceRel = new Vec3(0, MAX_THROTTLE * Math.exp(controller.throttle), 0);
         upforceRel.applyQuaternion(this.body.getQuaternion());
-        this.body.linearVelocity.y = -(GRAVITY * WEIGHT_KG) + upforceRel.y;
+        this.motorVectors = [];
+        ['FL', 'BL', 'FR', 'BR'].forEach((key) => {
+            const center = this.body.getPosition().clone();
+            center.add(MOTOR_OFFSET[key])
+            this.motorVectors.push(
+                { key, position: center, impulse: upforceRel }
+            );
+            this.body.applyImpulse(center, upforceRel);
+        });
         // console.log( upforceRel.y + ' - ' + upforce.y)
     }
 
     rotate() {
-        this.body.angularVelocity.y = MAX_ROTATION_SPEED * controller.yaw;
+        this.nextFrameRotation =  {...this.nextFrameRotation, z : 20 * controller.yaw };
+        this.body.angularVelocity.y = controller.yaw * MAX_ROTATION_SPEED;
     }
 
     moveForward() {
@@ -49,7 +66,7 @@ export class Drone {
         // make it global
         rollVector.applyQuaternion(this.body.getQuaternion());
         this.body.applyImpulse(this.body.getPosition(), rollVector);
-        // this.body.angularVelocity.z = RIGHT_STICK_ANGLE_SPEED * controller.roll;
+        this.nextFrameRotation = {... this.nextFrameRotation, x: -30 * controller.roll};
     }
 
     moveSideways() {
@@ -57,7 +74,7 @@ export class Drone {
         // make it global
         pitchVector.applyQuaternion(this.body.getQuaternion());
         this.body.applyImpulse(this.body.getPosition(), pitchVector);
-        // this.body.angularVelocity.x = RIGHT_STICK_ANGLE_SPEED * -controller.pitch; // this.body.applyImpulse(this.body.getPosition(), this.rollForce);
+        this.nextFrameRotation =  {...this.nextFrameRotation, y : 20 * -controller.pitch };
     }
 
     // called every frame
@@ -67,9 +84,17 @@ export class Drone {
         }
         this.moveUpAndDown()
         if (!flags.isPlayerOnTheGround) {
+            this.nextFrameRotation = {... this.body.newRotation };
             this.rotate()
             this.moveForward();
             this.moveSideways()
+            if (this.nextFrameRotation !== this.body.newRotation) {
+                this.body.controlRot = true;
+                this.body.setRotation(this.nextFrameRotation);
+                this.body.controlRot = false;
+                // this.body.resetRotation();
+                this.body.controlRot = false;
+            }
         }
     }
 }

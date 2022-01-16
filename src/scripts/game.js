@@ -31,8 +31,8 @@ async function createPlayer() {
     testCubePos = [-2, 4, 0];
     const playerBody = addBox(testCubeSize, testCubePos, 'player', true, [0, 0, 0], 60);
     playerBody.allowSleep = false;
-    addPlayer(testCubeSize, testCubePos, [0, 0, 0]);
-    drone = new Drone(playerBody);
+    const mesh = await addPlayer(testCubeSize, testCubePos, [0, 0, 0]);
+    drone = new Drone(playerBody, mesh);
 }
 
 
