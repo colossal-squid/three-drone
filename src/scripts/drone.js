@@ -9,7 +9,7 @@ export const MAX_THROTTLE = GRAVITY * WEIGHT_KG;
 export const MAX_FORWARD_FORCE = 1 / 50;
 export const MAX_PITCH_FORCE = 1 / 50;
 const STOP = { x: 0, y: 0, z: 0 };
-const RIGHT_STICK_ANGLE_SPEED = 0.5;
+const RIGHT_STICK_ANGLE_SPEED = 5;
 
 export class Drone {
 
@@ -29,7 +29,7 @@ export class Drone {
     }
 
     moveUpAndDown() {
-        const upforceRel = new Vec3(0, MAX_THROTTLE * Math.exp( controller.throttle), 0);
+        const upforceRel = new Vec3(0, MAX_THROTTLE * Math.exp(controller.throttle), 0);
         upforceRel.applyQuaternion(this.body.getQuaternion());
         this.body.linearVelocity.y = -(GRAVITY * WEIGHT_KG) + upforceRel.y;
         // console.log( upforceRel.y + ' - ' + upforce.y)
@@ -54,7 +54,7 @@ export class Drone {
         // make it global
         pitchVector.applyQuaternion(this.body.getQuaternion());
         this.body.applyImpulse(this.body.getPosition(), pitchVector);
-        // this.body.angularVelocity.x = RIGHT_STICK_ANGLE_SPEED * -controller.pitch; // this.body.applyImpulse(this.body.getPosition(), this.rollForce);
+        this.body.angularVelocity.x = RIGHT_STICK_ANGLE_SPEED * -controller.pitch; // this.body.applyImpulse(this.body.getPosition(), this.rollForce);
     }
 
     // called every frame
@@ -64,6 +64,7 @@ export class Drone {
             this.body.angularVelocity
         ].map(({ x, y, z }) => `x:${x.toFixed(2)} y:${y.toFixed(2)} z: ${z.toFixed(2)}`)
             .join('\n');
+        debugText += '\n' + controller.toString() + '\n';
         debugText += '\nmass: ' + (this.body.mass * 1000).toFixed(2) + 'g\n';
         debugText += '\ngp: ' + controller.name + '\n';
         debugText += KEYBOARD_CONTROLS;

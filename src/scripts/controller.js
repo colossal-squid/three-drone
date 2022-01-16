@@ -73,6 +73,10 @@ class Controller {
         // this.debug = document.querySelector('#debug');
     }
 
+    toString() {
+        return `${this.throttle.toFixed(2)} ${this.yaw.toFixed(2)} ${this.pitch.toFixed(2)} ${this.roll.toFixed(2)}`
+    }
+
     get name() {
         const gp = (navigator.getGamepads() || [{}])[0]
         return (gp?.id || 'Keyboard controls').substring(0, 18) + '...';

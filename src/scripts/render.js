@@ -25,7 +25,7 @@ const ToRad = 0.0174532925199432957,
 
 let camera, scene, renderer;
 let controls, meshes = [];
-let cameraMode = MODE_THIRD_PERSON, props = [];
+let cameraMode = MODE_FPV, props = [];
 
 function loadPlayerModel() {
     const PATH = 'public/';

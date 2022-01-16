@@ -4,6 +4,7 @@ import { Drone } from './drone';
 import { initOverlay } from './overlay';
 import controller from './controller';
 import { WORLD_SIZE } from './constants';
+import { updateAudio } from './audio';
 
 let drone;
 
@@ -48,6 +49,7 @@ export async function start() {
         drone.update();
         updatePhysics();
         updateRenderer(bodies, drone);
+        updateAudio();
     }
     update();
 }
